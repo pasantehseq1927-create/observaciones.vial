@@ -778,7 +778,28 @@ async function prepareTripWithMapScreenshot(trip) {
 
   return payloadTrip;
 }
+async function capturarMapaComoImagen() {
+  const mapElement = document.getElementById("map");
 
+  if (!mapElement) {
+    throw new Error("No se encontró el mapa.");
+  }
+
+  if (map) {
+    map.invalidateSize();
+  }
+
+  await new Promise(resolve => setTimeout(resolve, 700));
+
+  const canvas = await html2canvas(mapElement, {
+    useCORS: true,
+    allowTaint: false,
+    backgroundColor: "#ffffff",
+    scale: 1
+  });
+
+  return canvas.toDataURL("image/jpeg", 0.82);
+}
 async function sendTripToAdministrator(trip) {
   if (trip.demoMode) {
     throw new Error("Los recorridos de prueba no se envían.");
@@ -787,7 +808,8 @@ async function sendTripToAdministrator(trip) {
   const endpoint = APP_CONFIG?.APPS_SCRIPT_URL || "";
   if (!endpoint || endpoint.includes("PEGUE_AQUI")) {
     throw new Error("Falta configurar la URL privada de recepción.");
-  }
+  }const mapImage = await capturarMapaComoImagen();
+trip.mapImage = mapImage;
 
   await fetch(endpoint, {
     method: "POST",
