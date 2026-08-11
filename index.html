@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#075aa5">
+  <meta name="description" content="Registro preventivo de recorridos y peligros viales RMS.">
+  <title>Observador Vial RMS</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-rms.png">
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        crossorigin="">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="brand-header">
+    <div class="brand-logo-wrap">
+      <img src="logo-rms.png" alt="Logo RMS REMEO Medical Services" class="brand-logo">
+    </div>
+    <div class="title-band">
+      <div>
+        <h1>Observador Vial</h1>
+        <span class="version-badge final">VERSIÓN FINAL</span>
+        <p>Registro preventivo de condiciones y peligros en la vía</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="app-shell">
+    <section class="card safety-card" aria-label="Recomendación de seguridad">
+      <div class="safety-icon">🛡️</div>
+      <div>
+        <h2>Seguridad primero</h2>
+        <p>Inicia y finaliza el recorrido únicamente con el vehículo detenido. Durante la conducción, no manipules el celular.</p>
+      </div>
+    </section>
+
+    <div id="demoBanner" class="demo-banner hidden" role="status">
+      <strong>🧪 MODO DE PRUEBA</strong>
+      <span>Este recorrido es simulado, no usa GPS y no enviará datos al administrador.</span>
+    </div>
+
+    <section class="card" id="tripSetup">
+      <h2><span class="section-icon">👤</span> Información del recorrido</h2>
+
+      <div class="field-grid">
+        <label class="field field-full">
+          <span>Nombre del especialista</span>
+          <input id="driver" autocomplete="name" placeholder="Ingresa tu nombre completo">
+        </label>
+
+        <label class="field field-full">
+          <span>Medio de transporte</span>
+          <select id="vehicle">
+            <option value="">Selecciona el medio de transporte</option>
+            <option value="Carro">Carro</option>
+            <option value="Moto">Moto</option>
+            <option value="Bicicleta">Bicicleta</option>
+            <option value="A pie">A pie</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Origen</span>
+          <input id="origin" placeholder="Lugar de origen">
+        </label>
+
+        <label class="field">
+          <span>Destino</span>
+          <input id="destination" placeholder="Lugar de destino">
+        </label>
+      </div>
+
+      <div class="setup-actions">
+        <button id="startBtn" class="button button-success" type="button">
+          ▶ Iniciar recorrido real
+        </button>
+        <button id="demoBtn" class="button button-demo hidden" type="button" aria-hidden="true" tabindex="-1">
+          🧪 Modo de prueba (recorrido simulado)
+          <small>Prueba la aplicación sin usar GPS ni registrar datos reales</small>
+        </button>
+      </div>
+    </section>
+
+    <section class="card hidden" id="trackingPanel">
+      <h2><span class="section-icon">📍</span> Seguimiento del recorrido</h2>
+      <div class="tracking-status">
+        <span class="pulse-dot"></span>
+        <span id="trackingStatus">El recorrido se está registrando...</span>
+      </div>
+      <p id="liveInfo" class="live-info">Esperando ubicación...</p>
+      <p class="background-note">💾 El avance se guarda en este dispositivo. Al regresar desde otra aplicación, el recorrido se recupera y el GPS se reactiva automáticamente.</p>
+
+      <div class="tracking-metrics">
+        <div><strong id="pointCount">0</strong><span>Puntos</span></div>
+        <div><strong id="elapsedTime">00:00</strong><span>Tiempo</span></div>
+        <div><strong id="liveDistance">0.0 km</strong><span>Distancia</span></div>
+      </div>
+
+      <div id="demoControls" class="demo-controls hidden">
+        <button id="demoStepBtn" class="button button-demo-secondary" type="button">＋ Avanzar un punto simulado</button>
+        <button id="demoCompleteBtn" class="button button-light" type="button">⏩ Completar ruta simulada</button>
+      </div>
+
+      <button id="finishBtn" class="button button-danger" type="button">
+        ■ Finalizar recorrido
+      </button>
+    </section>
+
+    <section class="card hidden" id="resultPanel">
+      <h2><span class="section-icon">🗺️</span> Mapa del recorrido</h2>
+      <section class="hazard-picker" aria-labelledby="hazardPickerTitle">
+        <h3 id="hazardPickerTitle">Selecciona el ícono del peligro</h3>
+        <p>Elige una categoría y luego toca el punto exacto en el mapa.</p>
+        <div id="hazardIconPalette" class="hazard-icon-palette">
+          <button class="hazard-icon-button" type="button" data-hazard-type="Hueco o deterioro de la vía" aria-pressed="false"><span>🕳️</span><small>Hueco</small></button>
+          <button class="hazard-icon-button" type="button" data-hazard-type="Obra o cierre vial" aria-pressed="false"><span>🚧</span><small>Obra</small></button>
+          <button class="hazard-icon-button" type="button" data-hazard-type="Derrumbe" aria-pressed="false"><span>⛰️</span><small>Derrumbe</small></button>
+          <button class="hazard-icon-button" type="button" data-hazard-type="Inundación" aria-pressed="false"><span>🌊</span><small>Inundación</small></button>
+          <button class="hazard-icon-button" type="button" data-hazard-type="Animal en la vía" aria-pressed="false"><span>🐄</span><small>Animal</small></button>
+          <button class="hazard-icon-button" type="button" data-hazard-type="Señalización deficiente" aria-pressed="false"><span>⚠️</span><small>Señalización</small></button>
+          <button class="hazard-icon-button" type="button" data-hazard-type="Congestión" aria-pressed="false"><span>🚗</span><small>Congestión</small></button>
+          <button class="hazard-icon-button" type="button" data-hazard-type="Comportamiento peligroso de terceros" aria-pressed="false"><span>💥</span><small>Terceros</small></button>
+          <button class="hazard-icon-button" type="button" data-hazard-type="Objeto en la vía" aria-pressed="false"><span>📦</span><small>Objeto</small></button>
+          <button class="hazard-icon-button" type="button" data-hazard-type="Otro" aria-pressed="false"><span>❗</span><small>Otro</small></button>
+        </div>
+      </section>
+
+      <div class="map-toolbar" aria-label="Controles del mapa">
+        <button id="selectHazardBtn" class="button button-warning" type="button">⚠ Marcar condición peligrosa</button>
+        <button id="recenterMapBtn" class="button button-light" type="button">⌖ Volver al recorrido</button>
+      </div>
+      <div id="map" aria-label="Mapa interactivo del recorrido"></div>
+      <p id="mapHelp" class="map-help">Selecciona un ícono de peligro y luego toca el punto correspondiente en el mapa.</p>
+
+      <div id="tripSummary" class="trip-summary"></div>
+
+      <form id="hazardForm" class="hazard-form hidden">
+        <h3>⚠️ Registrar peligro vial</h3>
+        <input type="hidden" id="hazardLat">
+        <input type="hidden" id="hazardLng">
+
+        <label class="field">
+          <span>Tipo de peligro</span>
+          <select id="hazardType" required>
+            <option value="">Selecciona el tipo de peligro</option>
+            <option>Hueco o deterioro de la vía</option>
+            <option>Obra o cierre vial</option>
+            <option>Derrumbe</option>
+            <option>Inundación</option>
+            <option>Animal en la vía</option>
+            <option>Señalización deficiente</option>
+            <option>Congestión</option>
+            <option>Comportamiento peligroso de terceros</option>
+            <option>Objeto en la vía</option>
+            <option>Otro</option>
+          </select>
+        </label>
+
+        <fieldset class="risk-fieldset">
+          <legend>Nivel de riesgo</legend>
+          <div class="risk-options">
+            <label class="risk-option risk-low">
+              <input type="radio" name="riskLevel" value="Bajo" required>
+              <span>Bajo</span>
+            </label>
+            <label class="risk-option risk-medium">
+              <input type="radio" name="riskLevel" value="Medio">
+              <span>Medio</span>
+            </label>
+            <label class="risk-option risk-high">
+              <input type="radio" name="riskLevel" value="Alto">
+              <span>Alto</span>
+            </label>
+            <label class="risk-option risk-critical">
+              <input type="radio" name="riskLevel" value="Crítico">
+              <span>Crítico</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <label class="field">
+          <span>Descripción o punto de referencia</span>
+          <textarea id="reference" rows="3" placeholder="Describe el peligro observado o indica un punto de referencia"></textarea>
+        </label>
+
+        <div class="inline-actions">
+          <button class="button button-primary" type="submit">Guardar peligro</button>
+          <button id="cancelHazardBtn" class="button button-light" type="button">Cancelar</button>
+        </div>
+      </form>
+
+      <div id="hazardListWrap" class="hazard-list-wrap hidden">
+        <h3>Peligros registrados</h3>
+        <div id="hazardList"></div>
+      </div>
+
+      <div class="actions">
+        <button id="noHazardBtn" class="button button-light" type="button">No observé peligros</button>
+        <button id="sendTripBtn" class="button button-primary" type="button">✈ Enviar recorrido al administrador</button>
+        <button id="newTripBtn" class="button button-outline" type="button">↻ Comenzar nuevo recorrido</button>
+      </div>
+    </section>
+
+    <section class="card sync-card">
+      <h2><span class="section-icon">🔒</span> Envío privado</h2>
+      <p>Los recorridos reales se envían a la hoja privada configurada en Google Apps Script. Los datos pendientes permanecen temporalmente en este dispositivo.</p>
+      <p id="syncStatus" class="sync-status">Sin recorridos pendientes.</p>
+      <button id="retryBtn" class="button button-light hidden" type="button">Reintentar envío pendiente</button>
+    </section>
+  </main>
+
+  <footer>
+    <span>🛡️ RMS · Comprometidos con tu seguridad en la vía</span>
+  </footer>
+
+  <div id="toast" class="toast hidden" role="alert"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+Activación de GitHub Pages.

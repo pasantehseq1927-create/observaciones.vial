@@ -1,0 +1,17 @@
+{
+  "name": "Observador Vial RMS - Final",
+  "short_name": "RMS Vial",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f2f5f8",
+  "theme_color": "#075aa5",
+  "description": "Registro preventivo de recorridos y peligros viales RMS. Versión operativa sin simulación.",
+  "icons": [
+    {
+      "src": "icon-rms.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
