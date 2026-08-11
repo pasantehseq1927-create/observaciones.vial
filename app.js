@@ -807,6 +807,7 @@ async function sendTripToAdministrator(trip) {
 
   const endpoint = APP_CONFIG?.APPS_SCRIPT_URL || "";
   if (!endpoint || endpoint.includes("PEGUE_AQUI")) {
+  }
     throw new Error("Falta configurar la URL privada de recepción.");
  try {
   const mapImage = await capturarMapaComoImagen();
