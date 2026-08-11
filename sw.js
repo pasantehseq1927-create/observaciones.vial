@@ -1,4 +1,4 @@
-const CACHE = "observador-vial-rms-final-v10-map-capture";
+const CACHE = "observador-vial-rms-final-v11-mapa";
 const ASSETS = [
   "./",
   "./index.html",
