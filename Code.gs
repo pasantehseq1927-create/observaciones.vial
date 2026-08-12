@@ -11,7 +11,7 @@
   3. Copia la URL /exec en config.js.
 */
 
-const SPREADSHEET_ID = "PEGUE_AQUI_EL_ID_DE_SU_HOJA";
+const SPREADSHEET_ID = "18zif-yrmdMhkzNOdgrig0EAS4D7d6DHs9ibJqsp7h2U";
 const SCREENSHOT_FOLDER_NAME = "Observador Vial RMS - Capturas de mapas";
 
 function doGet() {
