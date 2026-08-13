@@ -806,30 +806,33 @@ async function sendTripToAdministrator(trip) {
   }
 
   const endpoint = APP_CONFIG?.APPS_SCRIPT_URL || "";
+
   if (!endpoint || endpoint.includes("PEGUE_AQUI")) {
-   throw new Error("Falta configurar la URL privada de recepción.");
-    }
- try {
-  const mapImage = await capturarMapaComoImagen();
-  trip.mapImage = mapImage;
-} catch (error) {
-  console.error("No se pudo capturar el mapa:", error);
-  trip.mapImage = "";
-}
+    throw new Error("Falta configurar la URL privada de recepción.");
+  }
+
+  console.log(
+    "Enviando recorrido:",
+    trip.id,
+    "Tamaño:",
+    Math.round(JSON.stringify(trip).length / 1024),
+    "KB"
+  );
 
   await fetch(endpoint, {
     method: "POST",
     mode: "no-cors",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    headers: {
+      "Content-Type": "text/plain;charset=utf-8"
+    },
     body: JSON.stringify({
       action: "saveTrip",
       organization: APP_CONFIG.ORGANIZATION_NAME || "RMS",
-      trip
-    }),
-    keepalive: true
+      trip: trip
+    })
   });
 }
-
+ 
 async function sendCurrentTrip() {
   if (isDemoMode || currentTrip?.demoMode) {
     showToast("El modo de prueba no envía datos reales.");
